@@ -32,8 +32,12 @@
             this.buttonFindFile = new System.Windows.Forms.Button();
             this.dataGridViewExcel = new System.Windows.Forms.DataGridView();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.label5 = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
             this.textBoxAccountTypeProfile = new System.Windows.Forms.TextBox();
+            this.label5 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.textBoxOptions = new System.Windows.Forms.TextBox();
+            this.textBoxContext = new System.Windows.Forms.TextBox();
             this.progressBarCategorize = new System.Windows.Forms.ProgressBar();
             this.comboBoxSheet = new System.Windows.Forms.ComboBox();
             this.label4 = new System.Windows.Forms.Label();
@@ -74,19 +78,23 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.dataGridViewExcel.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dataGridViewExcel.Location = new System.Drawing.Point(0, 142);
+            this.dataGridViewExcel.Location = new System.Drawing.Point(0, 199);
             this.dataGridViewExcel.Name = "dataGridViewExcel";
             this.dataGridViewExcel.RowHeadersWidth = 82;
             this.dataGridViewExcel.RowTemplate.Height = 41;
-            this.dataGridViewExcel.Size = new System.Drawing.Size(2202, 959);
+            this.dataGridViewExcel.Size = new System.Drawing.Size(2202, 902);
             this.dataGridViewExcel.TabIndex = 3;
             // 
             // panel1
             // 
             this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.panel1.Controls.Add(this.label5);
+            this.panel1.Controls.Add(this.label7);
             this.panel1.Controls.Add(this.textBoxAccountTypeProfile);
+            this.panel1.Controls.Add(this.label5);
+            this.panel1.Controls.Add(this.label6);
+            this.panel1.Controls.Add(this.textBoxOptions);
+            this.panel1.Controls.Add(this.textBoxContext);
             this.panel1.Controls.Add(this.progressBarCategorize);
             this.panel1.Controls.Add(this.comboBoxSheet);
             this.panel1.Controls.Add(this.label4);
@@ -101,25 +109,67 @@
             this.panel1.Controls.Add(this.buttonCategorizeExcel);
             this.panel1.Location = new System.Drawing.Point(0, 2);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(2204, 141);
+            this.panel1.Size = new System.Drawing.Size(2204, 191);
             this.panel1.TabIndex = 4;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(1346, 0);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(103, 32);
+            this.label7.TabIndex = 18;
+            this.label7.Text = "Options:";
+            // 
+            // textBoxAccountTypeProfile
+            // 
+            this.textBoxAccountTypeProfile.Location = new System.Drawing.Point(1842, 35);
+            this.textBoxAccountTypeProfile.Name = "textBoxAccountTypeProfile";
+            this.textBoxAccountTypeProfile.Size = new System.Drawing.Size(122, 39);
+            this.textBoxAccountTypeProfile.TabIndex = 13;
+            this.textBoxAccountTypeProfile.Text = "13";
             // 
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(1437, 13);
+            this.label5.Location = new System.Drawing.Point(1842, 0);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(263, 32);
             this.label5.TabIndex = 14;
             this.label5.Text = "Account type profile Id:";
             // 
-            // textBoxAccountTypeProfile
+            // label6
             // 
-            this.textBoxAccountTypeProfile.Location = new System.Drawing.Point(1706, 16);
-            this.textBoxAccountTypeProfile.Name = "textBoxAccountTypeProfile";
-            this.textBoxAccountTypeProfile.Size = new System.Drawing.Size(122, 39);
-            this.textBoxAccountTypeProfile.TabIndex = 13;
-            this.textBoxAccountTypeProfile.Text = "13";
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(865, 0);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(102, 32);
+            this.label6.TabIndex = 17;
+            this.label6.Text = "Context:";
+            // 
+            // textBoxOptions
+            // 
+            this.textBoxOptions.Location = new System.Drawing.Point(1346, 35);
+            this.textBoxOptions.Multiline = true;
+            this.textBoxOptions.Name = "textBoxOptions";
+            this.textBoxOptions.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.textBoxOptions.Size = new System.Drawing.Size(461, 137);
+            this.textBoxOptions.TabIndex = 16;
+            this.textBoxOptions.Text = "\"culture\":\"en-GB\",\r\n\"includeDetectedCategories\": true,\r\n\"includeCategoryDetails\":" +
+    " true,\r\n\"includeMerchantDetails\": true,\r\n\"includeDebugBreakdown\": true,\r\n\"includ" +
+    "eCarbonFootprint\": true";
+            // 
+            // textBoxContext
+            // 
+            this.textBoxContext.Location = new System.Drawing.Point(865, 35);
+            this.textBoxContext.Multiline = true;
+            this.textBoxContext.Name = "textBoxContext";
+            this.textBoxContext.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.textBoxContext.Size = new System.Drawing.Size(457, 137);
+            this.textBoxContext.TabIndex = 15;
+            this.textBoxContext.Text = "\"defaultCountryCode\": \"ES\",\r\n\"defaultCurrency\":\"EUR\",\r\n\"dataSourceProfile\":\"Defau" +
+    "ltSpanish\"";
+            this.textBoxContext.TextChanged += new System.EventHandler(this.textBoxContext_TextChanged);
             // 
             // progressBarCategorize
             // 
@@ -142,7 +192,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(456, 60);
+            this.label4.Location = new System.Drawing.Point(456, 72);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(146, 32);
             this.label4.TabIndex = 10;
@@ -160,7 +210,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(866, 63);
+            this.label2.Location = new System.Drawing.Point(456, 137);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(53, 32);
             this.label2.TabIndex = 8;
@@ -169,7 +219,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(868, 16);
+            this.label1.Location = new System.Drawing.Point(12, 140);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(48, 32);
             this.label1.TabIndex = 7;
@@ -178,9 +228,9 @@
             // 
             // textBoxClientSecret
             // 
-            this.textBoxClientSecret.Location = new System.Drawing.Point(628, 60);
+            this.textBoxClientSecret.Location = new System.Drawing.Point(628, 72);
             this.textBoxClientSecret.Name = "textBoxClientSecret";
-            this.textBoxClientSecret.Size = new System.Drawing.Size(198, 39);
+            this.textBoxClientSecret.Size = new System.Drawing.Size(215, 39);
             this.textBoxClientSecret.TabIndex = 6;
             this.textBoxClientSecret.Text = "MenigaDev2021";
             this.textBoxClientSecret.UseSystemPasswordChar = true;
@@ -189,23 +239,23 @@
             // 
             this.textBoxClientId.Location = new System.Drawing.Point(628, 15);
             this.textBoxClientId.Name = "textBoxClientId";
-            this.textBoxClientId.Size = new System.Drawing.Size(198, 39);
+            this.textBoxClientId.Size = new System.Drawing.Size(215, 39);
             this.textBoxClientId.TabIndex = 5;
             this.textBoxClientId.Text = "int_api_gateway";
             // 
             // textBoxSts
             // 
-            this.textBoxSts.Location = new System.Drawing.Point(938, 60);
+            this.textBoxSts.Location = new System.Drawing.Point(515, 134);
             this.textBoxSts.Name = "textBoxSts";
-            this.textBoxSts.Size = new System.Drawing.Size(479, 39);
+            this.textBoxSts.Size = new System.Drawing.Size(334, 39);
             this.textBoxSts.TabIndex = 4;
-            this.textBoxSts.Text = "https://identity.meniga.cloud/identity";
+            this.textBoxSts.Text = "https://identity.meniga.cloud";
             // 
             // textBoxApi
             // 
-            this.textBoxApi.Location = new System.Drawing.Point(938, 13);
+            this.textBoxApi.Location = new System.Drawing.Point(79, 133);
             this.textBoxApi.Name = "textBoxApi";
-            this.textBoxApi.Size = new System.Drawing.Size(479, 39);
+            this.textBoxApi.Size = new System.Drawing.Size(362, 39);
             this.textBoxApi.TabIndex = 3;
             this.textBoxApi.Text = "https://api.meniga.cloud";
             // 
@@ -242,5 +292,9 @@
         private ProgressBar progressBarCategorize;
         private Label label5;
         private TextBox textBoxAccountTypeProfile;
+        private Label label7;
+        private Label label6;
+        private TextBox textBoxOptions;
+        private TextBox textBoxContext;
     }
 }

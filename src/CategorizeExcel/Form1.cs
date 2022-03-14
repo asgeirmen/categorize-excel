@@ -15,6 +15,9 @@ namespace CategorizeExcel
     public partial class Form1 : Form
     {
         private string _excelFilePath = null;
+        private int _categoryIdColumnIndex = -1;
+        private int _categoryNameColumnIndex = -1;
+        private int _normalizedTextColumnIndex = -1;
 
         public Form1()
         {
@@ -27,7 +30,7 @@ namespace CategorizeExcel
             string encoded = System.Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1")
                 .GetBytes(textBoxClientId.Text + ":" + textBoxClientSecret.Text));
             cl.DefaultRequestHeaders.Add("Authorization", "Basic " + encoded);
-            var tokenResponse = cl.PostAsync($"{textBoxSts.Text}/connect/token",
+            var tokenResponse = cl.PostAsync($"{textBoxSts.Text}/identity/connect/token",
                 new FormUrlEncodedContent(new Dictionary<string, string> { { "grant_type", "client_credentials" } })).Result;
             if (tokenResponse.IsSuccessStatusCode)
             {
@@ -73,13 +76,32 @@ namespace CategorizeExcel
 
         private bool CategorizeRows(int startInd, int endInd)
         {
+            JsonObject requestObj = new JsonObject();
+            JsonArray transArray = new JsonArray();
+            try
+            {
+                requestObj["context"] = JsonObject.Parse("{" + textBoxContext.Text + "}");
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message, "Failed to parse context", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+
+            try
+            {
+                requestObj["options"] = JsonObject.Parse("{" + textBoxOptions.Text + "}");
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message, "Failed to parse options", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+
             try
             {
 
-                JsonObject requestObj = new JsonObject();
-                JsonArray transArray = new JsonArray();
                 requestObj["transactions"] = transArray;
-                requestObj["categoryContextId"] = JsonValue.Create(1);
                 JsonObject optionsObj = new JsonObject
                 {
                     ["includeDetectedCategories"] = JsonValue.Create(true),
@@ -97,7 +119,7 @@ namespace CategorizeExcel
                     bool hasAnyColumn = false;
                     for (int ind = 0; ind < dataGridViewExcel.ColumnCount; ind++)
                     {
-                        var colName = dataGridViewExcel.Columns[ind].Name.ToLower();
+                        var colName = dataGridViewExcel.Columns[ind].Name;
                         var field = ToApiPropertyName(colName);
                         var colValue = ((DataGridViewRow)row).Cells[ind].Value;
 
@@ -108,17 +130,35 @@ namespace CategorizeExcel
                                 case "identifier":
                                 case "text":
                                 case "currency":
-                                case "externalMerchantIdentifier":
+                                case "counterpartyAccountId":
+                                case "counterpartyName":
+                                case "TerminalId":
+                                case "externalMerchantId":
+                                case "merchantName":
                                 case "countryCode":
-                                case "date":
-                                case "dueDate":
+                                case "city":
+                                case "street":
+                                case "postalCode":
+                                case "region":
+                                case "geoLocation":
+                                case "maskedPan":
+                                case "checkId":
+                                case "purposeCode":
+                                case "bankTransactionCode":
+                                case "creditorId":
+                                case "reference":
+                                case "transactionDate":
+                                case "bookingDate":
+                                case "valueDate":
+                                case "timestamp":
                                 case "mcc":
                                 case "amount":
                                 case "amountInCurrency":
                                 case "bookedAmount":
+                                case "accountBalance":
                                 case "isMerchant":
                                 case "isOwnAccountTransfer":
-                                case "isUncleared":
+                                case "isPending":
                                     if (colValue.ToString() != "")
                                     {
                                         trans[field] = JsonValue.Create(colValue);
@@ -145,19 +185,61 @@ namespace CategorizeExcel
                 HttpClient cl = new HttpClient();
                 cl.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
-                var apiResponse = cl.PostAsync($"{textBoxApi.Text}/integration/core/v1/transactions/categorize/{textBoxAccountTypeProfile.Text}",
+                var apiResponse = cl.PostAsync($"{textBoxApi.Text}/integration/enrichment/v2/transactions/enrich",
                     new StringContent(requestData, Encoding.UTF8, "application/json")).Result;
                 if (apiResponse.IsSuccessStatusCode)
                 {
                     var responseString = apiResponse.Content.ReadAsStringAsync().Result;
-                    var reponseObject = JsonSerializer.Deserialize<JsonObject>(responseString);
-                    var transResults = reponseObject["data"] as JsonArray;
+                    var transResults = JsonSerializer.Deserialize<JsonArray>(responseString);
                     for (int ind = 0; ind < transResults.Count; ind++)
                     {
                         var trans = transResults[ind];
                         var row = dataGridViewExcel.Rows[startInd + ind];
+                        if (trans["categoryDetails"] != null)
+                        {
+                            ((DataGridViewRow) row).Cells[GetColumnIndex("ResCategory")].Value = (trans["categoryDetails"]["label"]).AsValue().ToString();
+                            if (_categoryNameColumnIndex >= 0)
+                            {
+                                if (((DataGridViewRow) row).Cells[_categoryNameColumnIndex].Value?.ToString()?.Trim() ==
+                                    ((DataGridViewRow) row).Cells[GetColumnIndex("ResCategory")]?.Value.ToString()?.Trim())
+                                {
+                                    ((DataGridViewRow)row).Cells[GetColumnIndex("ResCategory")].Style.BackColor = Color.Chartreuse;
+                                }
+                                else
+                                {
+                                    ((DataGridViewRow)row).Cells[GetColumnIndex("ResCategory")].Style.BackColor = Color.LightCoral;
+                                }
+                            }
+                        }
+
                         ((DataGridViewRow)row).Cells[GetColumnIndex("ResCategoryId")].Value = trans["categoryId"].AsValue().ToString();
-                        ((DataGridViewRow)row).Cells[GetColumnIndex("ResSubText")].Value = trans["subText"].AsValue().ToString();
+                        if (_categoryIdColumnIndex >= 0)
+                        {
+                            if (((DataGridViewRow)row).Cells[_categoryIdColumnIndex].Value?.ToString()?.Trim() ==
+                                ((DataGridViewRow)row).Cells[GetColumnIndex("ResCategoryId")]?.Value.ToString()?.Trim())
+                            {
+                                ((DataGridViewRow)row).Cells[GetColumnIndex("ResCategoryId")].Style.BackColor = Color.Chartreuse;
+                            }
+                            else
+                            {
+                                ((DataGridViewRow)row).Cells[GetColumnIndex("ResCategoryId")].Style.BackColor = Color.LightCoral;
+                            }
+                        }
+                        ((DataGridViewRow)row).Cells[GetColumnIndex("ResNormalizedText")].Value = trans["normalizedText"].AsValue().ToString();
+                        if (_normalizedTextColumnIndex >= 0)
+                        {
+                            if (((DataGridViewRow)row).Cells[_normalizedTextColumnIndex].Value?.ToString()?.Trim() ==
+                                ((DataGridViewRow)row).Cells[GetColumnIndex("ResNormalizedText")]?.Value.ToString()?.Trim())
+                            {
+                                ((DataGridViewRow)row).Cells[GetColumnIndex("ResNormalizedText")].Style.BackColor = Color.Chartreuse;
+                            }
+                            else
+                            {
+                                ((DataGridViewRow)row).Cells[GetColumnIndex("ResNormalizedText")].Style.BackColor = Color.LightCoral;
+                            }
+                        }
+
+                        ((DataGridViewRow)row).Cells[GetColumnIndex("ResDisplayText")].Value = trans["displayText"].AsValue().ToString();
                         ((DataGridViewRow)row).Cells[GetColumnIndex("Response")].Value = JsonSerializer.Serialize(trans, new JsonSerializerOptions()
                         {
                             WriteIndented = true
@@ -191,9 +273,13 @@ namespace CategorizeExcel
             buttonCategorizeExcel.Enabled = false;
             progressBarCategorize.Value = 0;
             InsertResultsColumnIfNotExists("ResCategoryId");
-            InsertResultsColumnIfNotExists("ResSubText");
+            InsertResultsColumnIfNotExists("ResCategory");
+            InsertResultsColumnIfNotExists("ResNormalizedText");
+            InsertResultsColumnIfNotExists("ResDisplayText");
             InsertResultsColumnIfNotExists("Response");
             InsertResultsColumnIfNotExists("Request");
+
+            FindSpecialColumnIds();
 
             Thread backgroundThread = new Thread(
                 new ThreadStart(() =>
@@ -263,19 +349,46 @@ namespace CategorizeExcel
 
         }
 
-        private string ToApiPropertyName(string claimName)
+        private void FindSpecialColumnIds()
         {
-            var strBuilder = new StringBuilder(claimName.Length);
-            strBuilder.Append(claimName[0]);
-
-            for (int charInd = 1; charInd < claimName.Length; charInd++)
+            for (int ind = 0; ind < dataGridViewExcel.ColumnCount; ind++)
             {
-                char curChar = claimName[charInd];
-                if (claimName[charInd - 1] == '_')
+                var colName = dataGridViewExcel.Columns[ind].Name;
+                var propName = ToApiPropertyName(colName);
+                if (propName.StartsWith("res") || propName.Contains("parent"))
+                {
+                    // Not special column
+                }
+                else if (propName.Contains("categoryId"))
+                {
+                    _categoryIdColumnIndex = ind;
+                }
+                else if (propName.Contains("category"))
+                {
+                    _categoryNameColumnIndex = ind;
+                }
+                else if (propName.Contains("normalized") || propName.Contains("cleaned"))
+                {
+                    _normalizedTextColumnIndex = ind;
+                }
+
+            }
+        }
+
+        private string ToApiPropertyName(string columnName)
+        {
+            columnName = columnName.Trim();
+            var strBuilder = new StringBuilder(columnName.Length);
+            strBuilder.Append(Char.ToLower(columnName[0]));
+
+            for (int charInd = 1; charInd < columnName.Length; charInd++)
+            {
+                char curChar = columnName[charInd];
+                if (columnName[charInd - 1] == '_' || columnName[charInd - 1] == ' ')
                 {
                     strBuilder.Append(char.ToUpper(curChar));
                 }
-                else if (curChar != '_')
+                else if (curChar != '_' && curChar != ' ')
                 {
                     strBuilder.Append(char.ToLower(curChar));
                 }
@@ -325,6 +438,11 @@ namespace CategorizeExcel
         private void comboBoxSheet_Format(object sender, ListControlConvertEventArgs e)
         {
             e.Value = ((DataRowView) e.Value).Row["TABLE_NAME"].ToString();
+        }
+
+        private void textBoxContext_TextChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }
