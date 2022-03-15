@@ -268,7 +268,7 @@
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.dataGridViewExcel);
             this.Name = "Form1";
-            this.Text = "Meniga Categorize Excel - v1.0";
+            this.Text = "Meniga Categorize Excel - v1.1";
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewExcel)).EndInit();
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
