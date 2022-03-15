@@ -18,10 +18,12 @@ namespace CategorizeExcel
         private int _categoryIdColumnIndex = -1;
         private int _categoryNameColumnIndex = -1;
         private int _normalizedTextColumnIndex = -1;
-
+        private bool _categorizationInProgress = false;
+        private bool _categorizationHasBeenCancelled = false;
         public Form1()
         {
             InitializeComponent();
+            this.Icon = Properties.Resources.favicon;
         }
 
         private string GetToken()
@@ -116,6 +118,7 @@ namespace CategorizeExcel
                     var row = dataGridViewExcel.Rows[rowInd];
 
                     JsonObject trans = new JsonObject();
+                    JsonObject customFields = new JsonObject();
                     bool hasAnyColumn = false;
                     for (int ind = 0; ind < dataGridViewExcel.ColumnCount; ind++)
                     {
@@ -123,54 +126,27 @@ namespace CategorizeExcel
                         var field = ToApiPropertyName(colName);
                         var colValue = ((DataGridViewRow)row).Cells[ind].Value;
 
-                        if (colValue != null)
+                        if (colValue != null && colValue.ToString() != "")
                         {
-                            switch (field)
+                            if (IsStandardField(field))
                             {
-                                case "identifier":
-                                case "text":
-                                case "currency":
-                                case "counterpartyAccountId":
-                                case "counterpartyName":
-                                case "TerminalId":
-                                case "externalMerchantId":
-                                case "merchantName":
-                                case "countryCode":
-                                case "city":
-                                case "street":
-                                case "postalCode":
-                                case "region":
-                                case "geoLocation":
-                                case "maskedPan":
-                                case "checkId":
-                                case "purposeCode":
-                                case "bankTransactionCode":
-                                case "creditorId":
-                                case "reference":
-                                case "transactionDate":
-                                case "bookingDate":
-                                case "valueDate":
-                                case "timestamp":
-                                case "mcc":
-                                case "amount":
-                                case "amountInCurrency":
-                                case "bookedAmount":
-                                case "accountBalance":
-                                case "isMerchant":
-                                case "isOwnAccountTransfer":
-                                case "isPending":
-                                    if (colValue.ToString() != "")
-                                    {
-                                        trans[field] = JsonValue.Create(colValue);
-                                        hasAnyColumn = true;
-                                    }
-                                    break;
+                                trans[field] = JsonValue.Create(colValue);
+                                hasAnyColumn = true;
+                            }
+                            else if (IsCustomField(field))
+                            {
+                                customFields[field] = JsonValue.Create(colValue);
+                                hasAnyColumn = true;
                             }
                         }
                     }
 
                     if (hasAnyColumn)
                     {
+                        if (customFields.Count > 0)
+                        {
+                            trans["customFields"] = customFields;
+                        }
                         transArray.Add(trans);
                     }
                 }
@@ -194,57 +170,57 @@ namespace CategorizeExcel
                     for (int ind = 0; ind < transResults.Count; ind++)
                     {
                         var trans = transResults[ind];
-                        var row = dataGridViewExcel.Rows[startInd + ind];
+                        var row = (DataGridViewRow)dataGridViewExcel.Rows[startInd + ind];
                         if (trans["categoryDetails"] != null)
                         {
-                            ((DataGridViewRow) row).Cells[GetColumnIndex("ResCategory")].Value = (trans["categoryDetails"]["label"]).AsValue().ToString();
+                            row.Cells[GetColumnIndex("ResCategory")].Value = (trans["categoryDetails"]["label"]).AsValue().ToString();
                             if (_categoryNameColumnIndex >= 0)
                             {
-                                if (((DataGridViewRow) row).Cells[_categoryNameColumnIndex].Value?.ToString()?.Trim() ==
-                                    ((DataGridViewRow) row).Cells[GetColumnIndex("ResCategory")]?.Value.ToString()?.Trim())
+                                if (row.Cells[_categoryNameColumnIndex].Value?.ToString()?.Trim() ==
+                                    row.Cells[GetColumnIndex("ResCategory")]?.Value.ToString()?.Trim())
                                 {
-                                    ((DataGridViewRow)row).Cells[GetColumnIndex("ResCategory")].Style.BackColor = Color.Chartreuse;
+                                    row.Cells[GetColumnIndex("ResCategory")].Style.BackColor = Color.Chartreuse;
                                 }
                                 else
                                 {
-                                    ((DataGridViewRow)row).Cells[GetColumnIndex("ResCategory")].Style.BackColor = Color.LightCoral;
+                                    row.Cells[GetColumnIndex("ResCategory")].Style.BackColor = Color.LightCoral;
                                 }
                             }
                         }
 
-                        ((DataGridViewRow)row).Cells[GetColumnIndex("ResCategoryId")].Value = trans["categoryId"].AsValue().ToString();
+                        row.Cells[GetColumnIndex("ResCategoryId")].Value = trans["categoryId"].AsValue().ToString();
                         if (_categoryIdColumnIndex >= 0)
                         {
-                            if (((DataGridViewRow)row).Cells[_categoryIdColumnIndex].Value?.ToString()?.Trim() ==
-                                ((DataGridViewRow)row).Cells[GetColumnIndex("ResCategoryId")]?.Value.ToString()?.Trim())
+                            if (row.Cells[_categoryIdColumnIndex].Value?.ToString()?.Trim() ==
+                                row.Cells[GetColumnIndex("ResCategoryId")]?.Value.ToString()?.Trim())
                             {
-                                ((DataGridViewRow)row).Cells[GetColumnIndex("ResCategoryId")].Style.BackColor = Color.Chartreuse;
+                                row.Cells[GetColumnIndex("ResCategoryId")].Style.BackColor = Color.Chartreuse;
                             }
                             else
                             {
-                                ((DataGridViewRow)row).Cells[GetColumnIndex("ResCategoryId")].Style.BackColor = Color.LightCoral;
+                                row.Cells[GetColumnIndex("ResCategoryId")].Style.BackColor = Color.LightCoral;
                             }
                         }
-                        ((DataGridViewRow)row).Cells[GetColumnIndex("ResNormalizedText")].Value = trans["normalizedText"].AsValue().ToString();
+                        row.Cells[GetColumnIndex("ResNormalizedText")].Value = trans["normalizedText"].AsValue().ToString();
                         if (_normalizedTextColumnIndex >= 0)
                         {
-                            if (((DataGridViewRow)row).Cells[_normalizedTextColumnIndex].Value?.ToString()?.Trim() ==
-                                ((DataGridViewRow)row).Cells[GetColumnIndex("ResNormalizedText")]?.Value.ToString()?.Trim())
+                            if (row.Cells[_normalizedTextColumnIndex].Value?.ToString()?.Trim() ==
+                                row.Cells[GetColumnIndex("ResNormalizedText")]?.Value.ToString()?.Trim())
                             {
-                                ((DataGridViewRow)row).Cells[GetColumnIndex("ResNormalizedText")].Style.BackColor = Color.Chartreuse;
+                                row.Cells[GetColumnIndex("ResNormalizedText")].Style.BackColor = Color.Chartreuse;
                             }
                             else
                             {
-                                ((DataGridViewRow)row).Cells[GetColumnIndex("ResNormalizedText")].Style.BackColor = Color.LightCoral;
+                                row.Cells[GetColumnIndex("ResNormalizedText")].Style.BackColor = Color.LightCoral;
                             }
                         }
 
-                        ((DataGridViewRow)row).Cells[GetColumnIndex("ResDisplayText")].Value = trans["displayText"].AsValue().ToString();
-                        ((DataGridViewRow)row).Cells[GetColumnIndex("Response")].Value = JsonSerializer.Serialize(trans, new JsonSerializerOptions()
+                        row.Cells[GetColumnIndex("ResDisplayText")].Value = trans["displayText"].AsValue().ToString();
+                        row.Cells[GetColumnIndex("Response")].Value = JsonSerializer.Serialize(trans, new JsonSerializerOptions()
                         {
                             WriteIndented = true
                         });
-                        ((DataGridViewRow)row).Cells[GetColumnIndex("Request")].Value = JsonSerializer.Serialize(transArray[ind], new JsonSerializerOptions()
+                        row.Cells[GetColumnIndex("Request")].Value = JsonSerializer.Serialize(transArray[ind], new JsonSerializerOptions()
                         {
                             WriteIndented = true
                         });
@@ -270,8 +246,17 @@ namespace CategorizeExcel
 
         private void buttonCategorizeExcel_Click(object sender, EventArgs e)
         {
-            buttonCategorizeExcel.Enabled = false;
+            if (_categorizationInProgress)
+            {
+                _categorizationInProgress = false;
+                buttonCategorizeExcel.Enabled = false;
+                return;
+            }
+
+            buttonCategorizeExcel.Text = "Cancel";
             progressBarCategorize.Value = 0;
+            _categorizationInProgress = true;
+
             InsertResultsColumnIfNotExists("ResCategoryId");
             InsertResultsColumnIfNotExists("ResCategory");
             InsertResultsColumnIfNotExists("ResNormalizedText");
@@ -301,10 +286,19 @@ namespace CategorizeExcel
                                         progressBarCategorize.Value = (100 * ind / dataGridViewExcel.RowCount);
                                     }
                                 ));
+
+                            if (!_categorizationInProgress)
+                            {
+                                break;
+                            }
                         }
 
                         buttonCategorizeExcel.BeginInvoke(
-                            new Action(() => { buttonCategorizeExcel.Enabled = true; }
+                            new Action(() =>
+                                {
+                                    buttonCategorizeExcel.Enabled = true;
+                                    buttonCategorizeExcel.Text = "Categorize";
+                                }
                             ));
                     }
                 ));
@@ -337,6 +331,17 @@ namespace CategorizeExcel
                         oleAdpt.Fill(dtexcel);
                         dataGridViewExcel.Visible = true;
                         dataGridViewExcel.DataSource = dtexcel;
+
+                        checkedListBoxCustomFields.Items.Clear();
+                        for (int ind = 0; ind < dataGridViewExcel.ColumnCount; ind++)
+                        {
+                            var colName = dataGridViewExcel.Columns[ind].Name;
+                            var field = ToApiPropertyName(colName);
+                            if (!IsStandardField(field))
+                            {
+                                checkedListBoxCustomFields.Items.Add(field);
+                            }
+                        }
                     }
 
                 }
@@ -373,6 +378,61 @@ namespace CategorizeExcel
                 }
 
             }
+        }
+
+        private bool IsStandardField(string fieldName)
+        {
+            switch (fieldName)
+            {
+                case "identifier":
+                case "text":
+                case "currency":
+                case "counterpartyAccountId":
+                case "counterpartyName":
+                case "TerminalId":
+                case "externalMerchantId":
+                case "merchantName":
+                case "countryCode":
+                case "city":
+                case "street":
+                case "postalCode":
+                case "region":
+                case "geoLocation":
+                case "maskedPan":
+                case "checkId":
+                case "purposeCode":
+                case "bankTransactionCode":
+                case "creditorId":
+                case "reference":
+                case "transactionDate":
+                case "bookingDate":
+                case "valueDate":
+                case "timestamp":
+                case "mcc":
+                case "amount":
+                case "amountInCurrency":
+                case "bookedAmount":
+                case "accountBalance":
+                case "isMerchant":
+                case "isOwnAccountTransfer":
+                case "isPending":
+                    return true;
+            }
+
+            return false;
+        }
+
+        private bool IsCustomField(string fieldName)
+        {
+            foreach (var customField in checkedListBoxCustomFields.CheckedItems)
+            {
+                if (fieldName == customField.ToString())
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private string ToApiPropertyName(string columnName)
@@ -441,6 +501,11 @@ namespace CategorizeExcel
         }
 
         private void textBoxContext_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label5_Click(object sender, EventArgs e)
         {
 
         }

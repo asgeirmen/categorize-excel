@@ -33,8 +33,6 @@
             this.dataGridViewExcel = new System.Windows.Forms.DataGridView();
             this.panel1 = new System.Windows.Forms.Panel();
             this.label7 = new System.Windows.Forms.Label();
-            this.textBoxAccountTypeProfile = new System.Windows.Forms.TextBox();
-            this.label5 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.textBoxOptions = new System.Windows.Forms.TextBox();
             this.textBoxContext = new System.Windows.Forms.TextBox();
@@ -48,6 +46,8 @@
             this.textBoxClientId = new System.Windows.Forms.TextBox();
             this.textBoxSts = new System.Windows.Forms.TextBox();
             this.textBoxApi = new System.Windows.Forms.TextBox();
+            this.checkedListBoxCustomFields = new System.Windows.Forms.CheckedListBox();
+            this.label5 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewExcel)).BeginInit();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
@@ -89,9 +89,9 @@
             // 
             this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.panel1.Controls.Add(this.label7);
-            this.panel1.Controls.Add(this.textBoxAccountTypeProfile);
             this.panel1.Controls.Add(this.label5);
+            this.panel1.Controls.Add(this.checkedListBoxCustomFields);
+            this.panel1.Controls.Add(this.label7);
             this.panel1.Controls.Add(this.label6);
             this.panel1.Controls.Add(this.textBoxOptions);
             this.panel1.Controls.Add(this.textBoxContext);
@@ -109,39 +109,22 @@
             this.panel1.Controls.Add(this.buttonCategorizeExcel);
             this.panel1.Location = new System.Drawing.Point(0, 2);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(2204, 191);
+            this.panel1.Size = new System.Drawing.Size(2204, 205);
             this.panel1.TabIndex = 4;
             // 
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(1346, 0);
+            this.label7.Location = new System.Drawing.Point(1346, 4);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(103, 32);
             this.label7.TabIndex = 18;
             this.label7.Text = "Options:";
             // 
-            // textBoxAccountTypeProfile
-            // 
-            this.textBoxAccountTypeProfile.Location = new System.Drawing.Point(1842, 35);
-            this.textBoxAccountTypeProfile.Name = "textBoxAccountTypeProfile";
-            this.textBoxAccountTypeProfile.Size = new System.Drawing.Size(122, 39);
-            this.textBoxAccountTypeProfile.TabIndex = 13;
-            this.textBoxAccountTypeProfile.Text = "13";
-            // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(1842, 0);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(263, 32);
-            this.label5.TabIndex = 14;
-            this.label5.Text = "Account type profile Id:";
-            // 
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(865, 0);
+            this.label6.Location = new System.Drawing.Point(865, 4);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(102, 32);
             this.label6.TabIndex = 17;
@@ -149,11 +132,11 @@
             // 
             // textBoxOptions
             // 
-            this.textBoxOptions.Location = new System.Drawing.Point(1346, 35);
+            this.textBoxOptions.Location = new System.Drawing.Point(1346, 39);
             this.textBoxOptions.Multiline = true;
             this.textBoxOptions.Name = "textBoxOptions";
             this.textBoxOptions.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textBoxOptions.Size = new System.Drawing.Size(461, 137);
+            this.textBoxOptions.Size = new System.Drawing.Size(461, 152);
             this.textBoxOptions.TabIndex = 16;
             this.textBoxOptions.Text = "\"culture\":\"en-GB\",\r\n\"includeDetectedCategories\": true,\r\n\"includeCategoryDetails\":" +
     " true,\r\n\"includeMerchantDetails\": true,\r\n\"includeDebugBreakdown\": true,\r\n\"includ" +
@@ -161,11 +144,11 @@
             // 
             // textBoxContext
             // 
-            this.textBoxContext.Location = new System.Drawing.Point(865, 35);
+            this.textBoxContext.Location = new System.Drawing.Point(865, 39);
             this.textBoxContext.Multiline = true;
             this.textBoxContext.Name = "textBoxContext";
             this.textBoxContext.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textBoxContext.Size = new System.Drawing.Size(457, 137);
+            this.textBoxContext.Size = new System.Drawing.Size(457, 152);
             this.textBoxContext.TabIndex = 15;
             this.textBoxContext.Text = "\"defaultCountryCode\": \"ES\",\r\n\"defaultCurrency\":\"EUR\",\r\n\"dataSourceProfile\":\"Defau" +
     "ltSpanish\"";
@@ -259,6 +242,24 @@
             this.textBoxApi.TabIndex = 3;
             this.textBoxApi.Text = "https://api.meniga.cloud";
             // 
+            // checkedListBoxCustomFields
+            // 
+            this.checkedListBoxCustomFields.FormattingEnabled = true;
+            this.checkedListBoxCustomFields.Location = new System.Drawing.Point(1841, 43);
+            this.checkedListBoxCustomFields.Name = "checkedListBoxCustomFields";
+            this.checkedListBoxCustomFields.Size = new System.Drawing.Size(343, 148);
+            this.checkedListBoxCustomFields.TabIndex = 19;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(1841, 7);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(165, 32);
+            this.label5.TabIndex = 20;
+            this.label5.Text = "Custom fields:";
+            this.label5.Click += new System.EventHandler(this.label5_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(13F, 32F);
@@ -267,7 +268,7 @@
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.dataGridViewExcel);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "Categorize from Excel";
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewExcel)).EndInit();
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
@@ -290,11 +291,11 @@
         private Label label2;
         private ComboBox comboBoxSheet;
         private ProgressBar progressBarCategorize;
-        private Label label5;
-        private TextBox textBoxAccountTypeProfile;
         private Label label7;
         private Label label6;
         private TextBox textBoxOptions;
         private TextBox textBoxContext;
+        private Label label5;
+        private CheckedListBox checkedListBoxCustomFields;
     }
 }
