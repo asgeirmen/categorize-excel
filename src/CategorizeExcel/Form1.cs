@@ -102,16 +102,7 @@ namespace CategorizeExcel
 
             try
             {
-
                 requestObj["transactions"] = transArray;
-                JsonObject optionsObj = new JsonObject
-                {
-                    ["includeDetectedCategories"] = JsonValue.Create(true),
-                    ["includeNormalizationInfo"] = JsonValue.Create(true),
-                    ["includeMerchantInfo"] = JsonValue.Create(true),
-                    ["includeCategorizationBreakdown"] = JsonValue.Create(true)
-                };
-                requestObj["options"] = optionsObj;
 
                 for(int rowInd = startInd; rowInd < endInd; rowInd++)
                 {
