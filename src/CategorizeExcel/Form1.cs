@@ -289,6 +289,7 @@ namespace CategorizeExcel
                                 {
                                     buttonCategorizeExcel.Enabled = true;
                                     buttonCategorizeExcel.Text = "Categorize";
+                                    _categorizationInProgress = false;
                                 }
                             ));
                     }
