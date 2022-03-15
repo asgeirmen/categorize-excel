@@ -32,6 +32,8 @@
             this.buttonFindFile = new System.Windows.Forms.Button();
             this.dataGridViewExcel = new System.Windows.Forms.DataGridView();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.label5 = new System.Windows.Forms.Label();
+            this.checkedListBoxCustomFields = new System.Windows.Forms.CheckedListBox();
             this.label7 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.textBoxOptions = new System.Windows.Forms.TextBox();
@@ -46,8 +48,6 @@
             this.textBoxClientId = new System.Windows.Forms.TextBox();
             this.textBoxSts = new System.Windows.Forms.TextBox();
             this.textBoxApi = new System.Windows.Forms.TextBox();
-            this.checkedListBoxCustomFields = new System.Windows.Forms.CheckedListBox();
-            this.label5 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewExcel)).BeginInit();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
@@ -111,6 +111,24 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(2204, 205);
             this.panel1.TabIndex = 4;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(1841, 7);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(165, 32);
+            this.label5.TabIndex = 20;
+            this.label5.Text = "Custom fields:";
+            this.label5.Click += new System.EventHandler(this.label5_Click);
+            // 
+            // checkedListBoxCustomFields
+            // 
+            this.checkedListBoxCustomFields.FormattingEnabled = true;
+            this.checkedListBoxCustomFields.Location = new System.Drawing.Point(1841, 43);
+            this.checkedListBoxCustomFields.Name = "checkedListBoxCustomFields";
+            this.checkedListBoxCustomFields.Size = new System.Drawing.Size(343, 148);
+            this.checkedListBoxCustomFields.TabIndex = 19;
             // 
             // label7
             // 
@@ -242,24 +260,6 @@
             this.textBoxApi.TabIndex = 3;
             this.textBoxApi.Text = "https://api.meniga.cloud";
             // 
-            // checkedListBoxCustomFields
-            // 
-            this.checkedListBoxCustomFields.FormattingEnabled = true;
-            this.checkedListBoxCustomFields.Location = new System.Drawing.Point(1841, 43);
-            this.checkedListBoxCustomFields.Name = "checkedListBoxCustomFields";
-            this.checkedListBoxCustomFields.Size = new System.Drawing.Size(343, 148);
-            this.checkedListBoxCustomFields.TabIndex = 19;
-            // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(1841, 7);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(165, 32);
-            this.label5.TabIndex = 20;
-            this.label5.Text = "Custom fields:";
-            this.label5.Click += new System.EventHandler(this.label5_Click);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(13F, 32F);
@@ -268,7 +268,7 @@
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.dataGridViewExcel);
             this.Name = "Form1";
-            this.Text = "Categorize from Excel";
+            this.Text = "Meniga Categorize Excel - v1.0";
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewExcel)).EndInit();
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
