@@ -76,7 +76,7 @@ namespace CategorizeExcel
             return -1;
         }
 
-        private bool CategorizeRows(int startInd, int endInd)
+        private bool CategorizeRows(int startInd, int endInd, string token, string apiBase)
         {
             JsonObject requestObj = new JsonObject();
             JsonArray transArray = new JsonArray();
@@ -119,7 +119,9 @@ namespace CategorizeExcel
 
                         if (colValue != null && colValue.ToString() != "")
                         {
-                            if (IsStandardField(field))
+                            var standardFieldType = StandardFieldType(field);
+
+                            if (standardFieldType != null)
                             {
                                 trans[field] = JsonValue.Create(colValue);
                                 hasAnyColumn = true;
@@ -139,6 +141,10 @@ namespace CategorizeExcel
                             trans["customFields"] = customFields;
                         }
                         transArray.Add(trans);
+                        row.Cells[GetColumnIndex("Request")].Value = JsonSerializer.Serialize(trans, new JsonSerializerOptions()
+                        {
+                            WriteIndented = true
+                        });
                     }
                 }
 
@@ -146,13 +152,12 @@ namespace CategorizeExcel
                 {
                     return true;
                 }
-                var requestData = JsonSerializer.Serialize(requestObj);
+                var requestData = JsonSerializer.Serialize(requestObj, new JsonSerializerOptions() );
 
-                var token = GetToken();
                 HttpClient cl = new HttpClient();
                 cl.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
-                var apiResponse = cl.PostAsync($"{textBoxApi.Text}/integration/enrichment/v2/transactions/enrich",
+                var apiResponse = cl.PostAsync($"{apiBase}/integration/enrichment/v2/transactions/enrich",
                     new StringContent(requestData, Encoding.UTF8, "application/json")).Result;
                 if (apiResponse.IsSuccessStatusCode)
                 {
@@ -211,10 +216,6 @@ namespace CategorizeExcel
                         {
                             WriteIndented = true
                         });
-                        row.Cells[GetColumnIndex("Request")].Value = JsonSerializer.Serialize(transArray[ind], new JsonSerializerOptions()
-                        {
-                            WriteIndented = true
-                        });
                     }
                 }
                 else
@@ -256,6 +257,8 @@ namespace CategorizeExcel
             InsertResultsColumnIfNotExists("Request");
 
             FindSpecialColumnIds();
+            var token = GetToken();
+            var apiBase = textBoxApi.Text;
 
             Thread backgroundThread = new Thread(
                 new ThreadStart(() =>
@@ -264,7 +267,7 @@ namespace CategorizeExcel
                         for (int ind = 0; ind < dataGridViewExcel.RowCount; )
                         {
                             int endInd = Math.Min(dataGridViewExcel.RowCount, ind + batchSize);
-                            if (!CategorizeRows(ind, endInd))
+                            if (!CategorizeRows(ind, endInd, token, apiBase))
                             {
                                 break;
                             }
@@ -329,7 +332,7 @@ namespace CategorizeExcel
                         {
                             var colName = dataGridViewExcel.Columns[ind].Name;
                             var field = ToApiPropertyName(colName);
-                            if (!IsStandardField(field))
+                            if (StandardFieldType(field) == null)
                             {
                                 checkedListBoxCustomFields.Items.Add(field);
                             }
@@ -372,7 +375,7 @@ namespace CategorizeExcel
             }
         }
 
-        private bool IsStandardField(string fieldName)
+        private Type? StandardFieldType(string fieldName)
         {
             switch (fieldName)
             {
@@ -381,7 +384,7 @@ namespace CategorizeExcel
                 case "currency":
                 case "counterpartyAccountId":
                 case "counterpartyName":
-                case "TerminalId":
+                case "terminalId":
                 case "externalMerchantId":
                 case "merchantName":
                 case "countryCode":
@@ -396,22 +399,25 @@ namespace CategorizeExcel
                 case "bankTransactionCode":
                 case "creditorId":
                 case "reference":
+                    return typeof(string);
                 case "transactionDate":
                 case "bookingDate":
                 case "valueDate":
                 case "timestamp":
+                    return typeof(DateTime);
                 case "mcc":
                 case "amount":
                 case "amountInCurrency":
                 case "bookedAmount":
                 case "accountBalance":
+                    return typeof(decimal);
                 case "isMerchant":
                 case "isOwnAccountTransfer":
                 case "isPending":
-                    return true;
+                    return typeof(bool);
             }
 
-            return false;
+            return null;
         }
 
         private bool IsCustomField(string fieldName)
@@ -436,7 +442,7 @@ namespace CategorizeExcel
             for (int charInd = 1; charInd < columnName.Length; charInd++)
             {
                 char curChar = columnName[charInd];
-                if (columnName[charInd - 1] == '_' || columnName[charInd - 1] == ' ')
+                if (columnName[charInd - 1] == '_' || columnName[charInd - 1] == ' ' || Char.IsLower(columnName[charInd - 1]) && Char.IsUpper(columnName[charInd]))
                 {
                     strBuilder.Append(char.ToUpper(curChar));
                 }

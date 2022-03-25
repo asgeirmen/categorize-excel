@@ -158,7 +158,7 @@
             this.textBoxOptions.TabIndex = 16;
             this.textBoxOptions.Text = "\"culture\":\"en-GB\",\r\n\"includeDetectedCategories\": true,\r\n\"includeCategoryDetails\":" +
     " true,\r\n\"includeMerchantDetails\": true,\r\n\"includeDebugBreakdown\": true,\r\n\"includ" +
-    "eCarbonFootprint\": true";
+    "eCarbonFootprint\": false";
             // 
             // textBoxContext
             // 
@@ -168,8 +168,7 @@
             this.textBoxContext.ScrollBars = System.Windows.Forms.ScrollBars.Both;
             this.textBoxContext.Size = new System.Drawing.Size(457, 152);
             this.textBoxContext.TabIndex = 15;
-            this.textBoxContext.Text = "\"defaultCountryCode\": \"ES\",\r\n\"defaultCurrency\":\"EUR\",\r\n\"dataSourceProfile\":\"Defau" +
-    "ltSpanish\"";
+            this.textBoxContext.Text = "\"defaultCountryCode\": \"ES\",\r\n\"defaultCurrency\":\"EUR\"";
             this.textBoxContext.TextChanged += new System.EventHandler(this.textBoxContext_TextChanged);
             // 
             // progressBarCategorize
@@ -233,7 +232,6 @@
             this.textBoxClientSecret.Name = "textBoxClientSecret";
             this.textBoxClientSecret.Size = new System.Drawing.Size(215, 39);
             this.textBoxClientSecret.TabIndex = 6;
-            this.textBoxClientSecret.Text = "MenigaDev2021";
             this.textBoxClientSecret.UseSystemPasswordChar = true;
             // 
             // textBoxClientId
