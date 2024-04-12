@@ -28,18 +28,30 @@ namespace CategorizeExcel
 
         private string GetToken()
         {
-            HttpClient cl = new HttpClient();
-            string encoded = System.Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1")
-                .GetBytes(textBoxClientId.Text + ":" + textBoxClientSecret.Text));
-            cl.DefaultRequestHeaders.Add("Authorization", "Basic " + encoded);
-            var tokenResponse = cl.PostAsync($"{textBoxSts.Text}/identity/connect/token",
-                new FormUrlEncodedContent(new Dictionary<string, string> { { "grant_type", "client_credentials" } })).Result;
-            if (tokenResponse.IsSuccessStatusCode)
+            if (string.IsNullOrEmpty(textBoxSts.Text))
             {
-                var responseString = tokenResponse.Content.ReadAsStringAsync().Result;
-                var jsonObj = JsonObject.Parse(responseString);
-                var token = jsonObj["access_token"].ToString();
-                return token;
+                return null;
+            }
+            try
+            {
+                HttpClient cl = new HttpClient();
+                string encoded = System.Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1")
+                    .GetBytes(textBoxClientId.Text + ":" + textBoxClientSecret.Text));
+                cl.DefaultRequestHeaders.Add("Authorization", "Basic " + encoded);
+                var tokenResponse = cl.PostAsync($"{textBoxSts.Text}/identity/connect/token",
+                    new FormUrlEncodedContent(new Dictionary<string, string> { { "grant_type", "client_credentials" } })).Result;
+                if (tokenResponse.IsSuccessStatusCode)
+                {
+                    var responseString = tokenResponse.Content.ReadAsStringAsync().Result;
+                    var jsonObj = JsonObject.Parse(responseString);
+                    var token = jsonObj["access_token"].ToString();
+                    return token;
+                }
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show("Failed to get token: " + exception.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return null;
             }
 
             throw new Exception("Failed to get token");
@@ -51,13 +63,13 @@ namespace CategorizeExcel
             if (colInd == -1)
             {
                 dataGridViewExcel.Columns.Insert(0,
-                    new DataGridViewTextBoxColumn() {Name = columnName, HeaderText = columnName});
+                    new DataGridViewTextBoxColumn() { Name = columnName, HeaderText = columnName });
             }
             else
             {
                 foreach (var row in dataGridViewExcel.Rows)
                 {
-                    ((DataGridViewRow) row).Cells[colInd].Value = "";
+                    ((DataGridViewRow)row).Cells[colInd].Value = "";
                 }
             }
         }
@@ -76,7 +88,7 @@ namespace CategorizeExcel
             return -1;
         }
 
-        private bool CategorizeRows(int startInd, int endInd, string token, string apiBase)
+        private bool CategorizeRows(int startInd, int endInd, string token, string apiBase, string apiType)
         {
             JsonObject requestObj = new JsonObject();
             JsonArray transArray = new JsonArray();
@@ -104,7 +116,7 @@ namespace CategorizeExcel
             {
                 requestObj["transactions"] = transArray;
 
-                for(int rowInd = startInd; rowInd < endInd; rowInd++)
+                for (int rowInd = startInd; rowInd < endInd; rowInd++)
                 {
                     var row = dataGridViewExcel.Rows[rowInd];
 
@@ -152,12 +164,18 @@ namespace CategorizeExcel
                 {
                     return true;
                 }
-                var requestData = JsonSerializer.Serialize(requestObj, new JsonSerializerOptions() );
+                var requestData = JsonSerializer.Serialize(requestObj, new JsonSerializerOptions());
 
                 HttpClient cl = new HttpClient();
-                cl.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+                if (token != null)
+                {
+                    cl.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+                }
 
-                var apiResponse = cl.PostAsync($"{apiBase}/integration/enrichment/v2/transactions/enrich",
+                string enrichEndpoint = apiType == "Core" ? $"{textBoxEnrichment.Text}/integration/v2/transactions/enrich" :
+                    $"{apiBase}/integration/enrichment/v2/transactions/enrich";
+
+                var apiResponse = cl.PostAsync(enrichEndpoint,
                     new StringContent(requestData, Encoding.UTF8, "application/json")).Result;
                 if (apiResponse.IsSuccessStatusCode)
                 {
@@ -165,7 +183,7 @@ namespace CategorizeExcel
                     var transResults = JsonSerializer.Deserialize<JsonArray>(responseString);
                     for (int ind = 0; ind < transResults.Count; ind++)
                     {
-                        var trans = transResults[ind];
+                        var trans = (JsonObject)transResults[ind];
                         var row = (DataGridViewRow)dataGridViewExcel.Rows[startInd + ind];
                         if (trans["categoryDetails"] != null)
                         {
@@ -184,34 +202,45 @@ namespace CategorizeExcel
                             }
                         }
 
-                        row.Cells[GetColumnIndex("ResCategoryId")].Value = trans["categoryId"].AsValue().ToString();
-                        if (_categoryIdColumnIndex >= 0)
+                        if (trans.ContainsKey("categoryId"))
                         {
-                            if (row.Cells[_categoryIdColumnIndex].Value?.ToString()?.Trim() ==
-                                row.Cells[GetColumnIndex("ResCategoryId")]?.Value.ToString()?.Trim())
+                            row.Cells[GetColumnIndex("ResCategoryId")].Value = trans["categoryId"].AsValue().ToString();
+                            if (_categoryIdColumnIndex >= 0)
                             {
-                                row.Cells[GetColumnIndex("ResCategoryId")].Style.BackColor = Color.Chartreuse;
-                            }
-                            else
-                            {
-                                row.Cells[GetColumnIndex("ResCategoryId")].Style.BackColor = Color.LightCoral;
-                            }
-                        }
-                        row.Cells[GetColumnIndex("ResNormalizedText")].Value = trans["normalizedText"].AsValue().ToString();
-                        if (_normalizedTextColumnIndex >= 0)
-                        {
-                            if (row.Cells[_normalizedTextColumnIndex].Value?.ToString()?.Trim() ==
-                                row.Cells[GetColumnIndex("ResNormalizedText")]?.Value.ToString()?.Trim())
-                            {
-                                row.Cells[GetColumnIndex("ResNormalizedText")].Style.BackColor = Color.Chartreuse;
-                            }
-                            else
-                            {
-                                row.Cells[GetColumnIndex("ResNormalizedText")].Style.BackColor = Color.LightCoral;
+                                if (row.Cells[_categoryIdColumnIndex].Value?.ToString()?.Trim() ==
+                                    row.Cells[GetColumnIndex("ResCategoryId")]?.Value.ToString()?.Trim())
+                                {
+                                    row.Cells[GetColumnIndex("ResCategoryId")].Style.BackColor = Color.Chartreuse;
+                                }
+                                else
+                                {
+                                    row.Cells[GetColumnIndex("ResCategoryId")].Style.BackColor = Color.LightCoral;
+                                }
                             }
                         }
 
-                        row.Cells[GetColumnIndex("ResDisplayText")].Value = trans["displayText"].AsValue().ToString();
+                        if (trans.ContainsKey("normalizedText"))
+                        {
+                            row.Cells[GetColumnIndex("ResNormalizedText")].Value = trans["normalizedText"].AsValue().ToString();
+                            if (_normalizedTextColumnIndex >= 0)
+                            {
+                                if (row.Cells[_normalizedTextColumnIndex].Value?.ToString()?.Trim() ==
+                                    row.Cells[GetColumnIndex("ResNormalizedText")]?.Value.ToString()?.Trim())
+                                {
+                                    row.Cells[GetColumnIndex("ResNormalizedText")].Style.BackColor = Color.Chartreuse;
+                                }
+                                else
+                                {
+                                    row.Cells[GetColumnIndex("ResNormalizedText")].Style.BackColor = Color.LightCoral;
+                                }
+                            }
+                        }
+
+                        if (trans.ContainsKey("displayText"))
+                        {
+                            row.Cells[GetColumnIndex("ResDisplayText")].Value = trans["displayText"].AsValue().ToString();
+                        }
+
                         row.Cells[GetColumnIndex("Response")].Value = JsonSerializer.Serialize(trans, new JsonSerializerOptions()
                         {
                             WriteIndented = true
@@ -236,6 +265,157 @@ namespace CategorizeExcel
             return true;
         }
 
+        private bool EnrichTapix(int startInd, int endInd, string token, string apiBase)
+        {
+            JsonObject requestObj = new JsonObject();
+            JsonArray transArray = new JsonArray();
+
+            try
+            {
+                requestObj["requests"] = transArray;
+
+                for (int rowInd = startInd; rowInd < endInd; rowInd++)
+                {
+                    var row = dataGridViewExcel.Rows[rowInd];
+
+                    JsonObject trans = new JsonObject();
+                    bool hasAnyColumn = false;
+                    for (int ind = 0; ind < dataGridViewExcel.ColumnCount; ind++)
+                    {
+                        var colName = dataGridViewExcel.Columns[ind].Name;
+                        var field = ToApiPropertyName(colName);
+                        var colValue = ((DataGridViewRow)row).Cells[ind].Value;
+
+                        if (colValue != null && colValue.ToString() != "")
+                        {
+                            //var standardFieldType = StandardFieldType(field);
+
+                            //if (standardFieldType != null)
+                            {
+                                trans[field] = JsonValue.Create(colValue);
+                                hasAnyColumn = true;
+                            }
+                        }
+                    }
+
+                    if (hasAnyColumn)
+                    {
+                        transArray.Add(trans);
+                        row.Cells[GetColumnIndex("Request")].Value = JsonSerializer.Serialize(trans, new JsonSerializerOptions()
+                        {
+                            WriteIndented = true
+                        });
+                    }
+
+                }
+
+
+                if (transArray.Count == 0)
+                {
+                    return true;
+                }
+                var requestData = JsonSerializer.Serialize(requestObj, new JsonSerializerOptions());
+                /*
+                                HttpClient cl = new HttpClient();
+                                if (token != null)
+                                {
+                                    cl.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+                                }
+
+                                string enrichEndpoint = checkBoxUseEnrichment.Checked ? $"{textBoxEnrichment.Text}/integration/v2/transactions/enrich" :
+                                    $"{apiBase}/integration/enrichment/v2/transactions/enrich";
+
+                                var apiResponse = cl.PostAsync(enrichEndpoint,
+                                    new StringContent(requestData, Encoding.UTF8, "application/json")).Result;
+                                if (apiResponse.IsSuccessStatusCode)
+                                {
+                                    var responseString = apiResponse.Content.ReadAsStringAsync().Result;
+                                    var transResults = JsonSerializer.Deserialize<JsonArray>(responseString);
+                                    for (int ind = 0; ind < transResults.Count; ind++)
+                                    {
+                                        var trans = (JsonObject)transResults[ind];
+                                        var row = (DataGridViewRow)dataGridViewExcel.Rows[startInd + ind];
+                                        if (trans["categoryDetails"] != null)
+                                        {
+                                            row.Cells[GetColumnIndex("ResCategory")].Value = (trans["categoryDetails"]["label"]).AsValue().ToString();
+                                            if (_categoryNameColumnIndex >= 0)
+                                            {
+                                                if (row.Cells[_categoryNameColumnIndex].Value?.ToString()?.Trim() ==
+                                                    row.Cells[GetColumnIndex("ResCategory")]?.Value.ToString()?.Trim())
+                                                {
+                                                    row.Cells[GetColumnIndex("ResCategory")].Style.BackColor = Color.Chartreuse;
+                                                }
+                                                else
+                                                {
+                                                    row.Cells[GetColumnIndex("ResCategory")].Style.BackColor = Color.LightCoral;
+                                                }
+                                            }
+                                        }
+
+                                        if (trans.ContainsKey("categoryId"))
+                                        {
+                                            row.Cells[GetColumnIndex("ResCategoryId")].Value = trans["categoryId"].AsValue().ToString();
+                                            if (_categoryIdColumnIndex >= 0)
+                                            {
+                                                if (row.Cells[_categoryIdColumnIndex].Value?.ToString()?.Trim() ==
+                                                    row.Cells[GetColumnIndex("ResCategoryId")]?.Value.ToString()?.Trim())
+                                                {
+                                                    row.Cells[GetColumnIndex("ResCategoryId")].Style.BackColor = Color.Chartreuse;
+                                                }
+                                                else
+                                                {
+                                                    row.Cells[GetColumnIndex("ResCategoryId")].Style.BackColor = Color.LightCoral;
+                                                }
+                                            }
+                                        }
+
+                                        if (trans.ContainsKey("normalizedText"))
+                                        {
+                                            row.Cells[GetColumnIndex("ResNormalizedText")].Value = trans["normalizedText"].AsValue().ToString();
+                                            if (_normalizedTextColumnIndex >= 0)
+                                            {
+                                                if (row.Cells[_normalizedTextColumnIndex].Value?.ToString()?.Trim() ==
+                                                    row.Cells[GetColumnIndex("ResNormalizedText")]?.Value.ToString()?.Trim())
+                                                {
+                                                    row.Cells[GetColumnIndex("ResNormalizedText")].Style.BackColor = Color.Chartreuse;
+                                                }
+                                                else
+                                                {
+                                                    row.Cells[GetColumnIndex("ResNormalizedText")].Style.BackColor = Color.LightCoral;
+                                                }
+                                            }
+                                        }
+
+                                        if (trans.ContainsKey("displayText"))
+                                        {
+                                            row.Cells[GetColumnIndex("ResDisplayText")].Value = trans["displayText"].AsValue().ToString();
+                                        }
+
+                                        row.Cells[GetColumnIndex("Response")].Value = JsonSerializer.Serialize(trans, new JsonSerializerOptions()
+                                        {
+                                            WriteIndented = true
+                                        });
+                                    }
+                                }
+                                else
+                                {
+                                    MessageBox.Show(apiResponse.Content.ReadAsStringAsync().Result, "Error reponse code " + apiResponse.StatusCode.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    return false;
+                                }
+                */
+
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show(exception.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+
+            }
+
+            return true;
+        }
+
+
         private void buttonCategorizeExcel_Click(object sender, EventArgs e)
         {
             if (_categorizationInProgress)
@@ -259,17 +439,27 @@ namespace CategorizeExcel
             FindSpecialColumnIds();
             var token = GetToken();
             var apiBase = textBoxApi.Text;
+            var apiType = comboBoxApiType.SelectedItem.ToString();
+
 
             Thread backgroundThread = new Thread(
                 new ThreadStart(() =>
                     {
                         int batchSize = 50;
-                        for (int ind = 0; ind < dataGridViewExcel.RowCount; )
+                        for (int ind = 0; ind < dataGridViewExcel.RowCount;)
                         {
                             int endInd = Math.Min(dataGridViewExcel.RowCount, ind + batchSize);
-                            if (!CategorizeRows(ind, endInd, token, apiBase))
+
+                            bool success = false;
+                            switch (apiType)
                             {
-                                break;
+                                case "Core":
+                                case "Enrichment":
+                                    success = CategorizeRows(ind, endInd, token, apiBase, apiType);
+                                    break;
+                                case "TapiX":
+                                    success = EnrichTapix(ind, endInd, token, apiBase);
+                                    break;
                             }
 
                             ind = endInd;
@@ -468,7 +658,7 @@ namespace CategorizeExcel
                 try
                 {
 
-                    ReadExcel(_excelFilePath, true); 
+                    ReadExcel(_excelFilePath, true);
                 }
                 catch (Exception ex)
                 {
@@ -495,17 +685,8 @@ namespace CategorizeExcel
 
         private void comboBoxSheet_Format(object sender, ListControlConvertEventArgs e)
         {
-            e.Value = ((DataRowView) e.Value).Row["TABLE_NAME"].ToString();
+            e.Value = ((DataRowView)e.Value).Row["TABLE_NAME"].ToString();
         }
 
-        private void textBoxContext_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label5_Click(object sender, EventArgs e)
-        {
-
-        }
     }
 }
