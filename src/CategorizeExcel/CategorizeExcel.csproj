@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <PackageReference Include="System.Data.OleDb" Version="6.0.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.5.1" />
   </ItemGroup>
 
   <ItemGroup>

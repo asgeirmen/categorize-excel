@@ -141,7 +141,6 @@
             textBoxEnrichment.Name = "textBoxEnrichment";
             textBoxEnrichment.Size = new Size(387, 39);
             textBoxEnrichment.TabIndex = 21;
-            textBoxEnrichment.Text = "http://localhost:20052";
             // 
             // label5
             // 
@@ -212,7 +211,6 @@
             comboBoxSheet.Name = "comboBoxSheet";
             comboBoxSheet.Size = new Size(273, 40);
             comboBoxSheet.TabIndex = 11;
-            comboBoxSheet.SelectedIndexChanged += comboBoxSheet_SelectedIndexChanged;
             comboBoxSheet.Format += comboBoxSheet_Format;
             comboBoxSheet.SelectedValueChanged += comboBoxSheet_SelectedValueChanged;
             // 
